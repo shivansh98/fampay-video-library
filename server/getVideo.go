@@ -3,10 +3,12 @@ package server
 import (
 	"context"
 	"encoding/json"
-	"fampay-video-library/database"
+
 	"fmt"
 	"net/http"
 	"strconv"
+
+	"github.com/shivansh98/fampay-video-library/database"
 )
 
 func getVideoMiddleWare(w http.ResponseWriter, r *http.Request) {

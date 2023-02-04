@@ -2,9 +2,10 @@ package server
 
 import (
 	"encoding/json"
-	"fampay-video-library/database"
 	"net/http"
 	"strconv"
+
+	"github.com/shivansh98/fampay-video-library/database"
 )
 
 const page_token = "page_no"

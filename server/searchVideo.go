@@ -3,11 +3,12 @@ package server
 import (
 	"context"
 	"encoding/json"
-	"fampay-video-library/database"
-	"fampay-video-library/util"
 	"fmt"
 	"io"
 	"net/http"
+
+	"github.com/shivansh98/fampay-video-library/database"
+	"github.com/shivansh98/fampay-video-library/util"
 )
 
 func SearchmiddleWare(w http.ResponseWriter, r *http.Request) {
