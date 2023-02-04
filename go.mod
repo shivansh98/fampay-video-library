@@ -1,4 +1,4 @@
-module fampay-video-library
+module github.com/shivansh98/fampay-video-library
 
 go 1.19
 

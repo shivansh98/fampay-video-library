@@ -2,8 +2,10 @@ package main
 
 import (
 	"context"
-	"fampay-video-library/cron"
 	"time"
+
+	"github.com/shivansh98/fampay-video-library/cron"
+	"github.com/shivansh98/fampay-video-library/server"
 )
 
 func main() {
@@ -11,4 +13,5 @@ func main() {
 	ctx, cancel := context.WithCancel(ctx)
 	go cron.CronRun(ctx, time.Minute, time.Now().Add(10*time.Minute).Unix(), "")
 	defer cancel()
+	server.Run()
 }
