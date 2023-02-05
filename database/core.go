@@ -141,5 +141,8 @@ func fetchDocs(ctx context.Context, text string, pageNo int64, request string) (
 	if err != nil {
 		return nil, err
 	}
+	if len(items) == 0 {
+		return nil, fmt.Errorf("zero documents found")
+	}
 	return
 }
