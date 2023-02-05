@@ -32,6 +32,7 @@ type Url string
 
 const limit = 25
 
+// CreateDBRequest creates a DB request from the youtube data api response, to insert data into mongoDB
 func CreateDBRequest(apiResp *youtube.SearchListResponse) (*DBRequest, error) {
 	if apiResp == nil {
 		return nil, fmt.Errorf("got api response as nil")
@@ -68,6 +69,7 @@ func CreateDBRequest(apiResp *youtube.SearchListResponse) (*DBRequest, error) {
 	return &req, nil
 }
 
+// Insert inserts the data got from youtube api
 func (d *DBRequest) Insert(ctx context.Context) error {
 	colln, err := ConnectDB(ctx)
 	if err != nil {
@@ -88,43 +90,52 @@ func (d *DBRequest) Insert(ctx context.Context) error {
 	return err
 }
 
+// GetDocuments calls fetchDocs with appropriate params to fetch docs
 func GetDocuments(ctx context.Context, pageNo int64) (items []*ItemDetails, err error) {
-	colln, err := ConnectDB(ctx)
-	if err != nil {
-		return nil, err
-	}
-	opts := options.Find().SetSort(bson.D{{"published_at", -1}}).SetLimit(limit)
-	if pageNo != 0 {
-		opts.SetSkip(limit * pageNo)
-	}
-	cur, err := colln.Find(ctx, bson.D{}, opts)
-	if err != nil {
-		return nil, err
-	}
-	items = []*ItemDetails{}
-	err = cur.All(ctx, &items)
-	if err != nil {
-		return nil, err
-	}
-	return
+	return fetchDocs(ctx, "", pageNo, "/get-videos")
 }
 
+// SearchDocuments calls fetchDocs with appropriate params to fetch docs
 func SearchDocuments(ctx context.Context, text string) (items []*ItemDetails, err error) {
+	return fetchDocs(ctx, text, 0, "/search")
+
+}
+
+// fetchDocs fetches doc from DB based on the http request params
+// for /search -> it uses text param only
+// searches doucments based on the text supplied, it used the text indexes
+// of the mongoDB to search . text index in mongoDB is formed by combining title and description field together.
+
+// for /get-videos -> it uses pageNo param only
+// here it skips the documents
+// that come before that page_no and sort the documents based on published_at in descending order.
+func fetchDocs(ctx context.Context, text string, pageNo int64, request string) (items []*ItemDetails, err error) {
 	colln, err := ConnectDB(ctx)
 	if err != nil {
 		return nil, err
 	}
 	opts := options.Find().SetSort(bson.D{{Key: "published_at", Value: -1}}).SetLimit(limit)
-	query := bson.M{
-		"$text": bson.M{
-			"$search": text,
-		},
+
+	var query interface{}
+	switch request {
+	case "/search":
+		query = bson.M{
+			"$text": bson.M{
+				"$search": text,
+			},
+		}
+	case "/get-videos":
+		query = bson.D{}
+		if pageNo != 0 {
+			opts.SetSkip(limit * pageNo)
+		}
 	}
+
 	cur, err := colln.Find(ctx, query, opts)
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println("count : ", cur.RemainingBatchLength())
+
 	items = []*ItemDetails{}
 	err = cur.All(ctx, &items)
 	if err != nil {

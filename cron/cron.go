@@ -2,7 +2,6 @@ package cron
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"time"
@@ -20,6 +19,8 @@ const (
 	maxResults   = 25
 )
 
+// CronRun runs a recursive function till the time is allowed (initially 10 min with delay of 1 min each) , it recursively
+// fetches the next page of the youtube api results
 func CronRun(ctx context.Context, delay time.Duration, till int64, nextPageToken string) error {
 	if time.Now().Unix() >= till {
 		return fmt.Errorf("done")
@@ -32,28 +33,39 @@ func CronRun(ctx context.Context, delay time.Duration, till int64, nextPageToken
 	return fmt.Errorf("error in getting next page")
 }
 
+// fetchYoutubeVideos fetches data from youtube data api by appyling the next page token
 func fetchYoutubeVideos(ctx context.Context, getPage string) (nextPageToken string) {
 	client := &http.Client{
 		Transport: &transport.APIKey{Key: developerKey},
 	}
 
 	service, err := youtube.New(client)
-	util.HandleError(err, "got error")
+	if err != nil {
+		util.LogError(err, "creating new api client")
+		return getPage
+	}
 
 	call := service.Search.List([]string{"id", "snippet"}).
 		Q(query).
 		MaxResults(maxResults).Type("video").PageToken(getPage)
 	response, err := call.Do()
-	util.HandleError(err, "got error")
-	js, err := json.Marshal(response)
-	util.HandleError(err, "got error")
-	fmt.Print("REsponse from youtube api ", string(js))
+	if err != nil {
+		util.LogError(err, "parsing response")
+		return getPage
+	}
+
 	dbReq, err := database.CreateDBRequest(response)
-	util.HandleError(err, "got error")
+	if err != nil {
+		util.LogError(err, "making db request")
+		return getPage
+	}
 
 	err = dbReq.Insert(ctx)
-	util.HandleError(err, "got error in inserting document in db")
-
+	if err != nil {
+		util.LogError(err, "inserting data into db")
+		return getPage
+	}
+	fmt.Println("Cron Iteration ran , Timestamp ", time.Now(), " : inteserted ", len(response.Items), " items in DB")
 	nextPageToken = response.NextPageToken
 	return
 }
