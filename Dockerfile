@@ -1,15 +1,13 @@
 FROM golang:1.19-bullseye 
 
-WORKDIR /fampay-video-library
+WORKDIR /app
 
-COPY go.mod ./
+COPY . .
 
 RUN go mod download
 
-COPY *.go ./
-
-RUN go build -o /fampay-video-library
+RUN go build -o /fampay-video-library-exe
 
 EXPOSE 8080
 
-CMD [ "/fampay-video-library" ]
+CMD [ "/fampay-video-library-exe" ]
