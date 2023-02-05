@@ -27,28 +27,28 @@ func SearchMiddleWare(w http.ResponseWriter, r *http.Request) {
 func searchVideos(w http.ResponseWriter, r *http.Request) {
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
-		util.LogError(fmt.Errorf("got error in getting body error:", err), "/search req")
-		failure(fmt.Errorf("got error in getting body error:", err), w)
+		util.LogError(fmt.Errorf("got error in getting body error:%v", err), "/search req")
+		failure(fmt.Errorf("got error in getting body error:%v", err), w)
 		return
 	}
 	var srchReq SearchRequest
 	err = json.Unmarshal(body, &srchReq)
 	if err != nil {
-		util.LogError(fmt.Errorf("got error in unmarshalling body error:", err), "/search req")
-		failure(fmt.Errorf("got error in unmarshalling body error:", err), w)
+		util.LogError(fmt.Errorf("got error in unmarshalling body error:%v", err), "/search req")
+		failure(fmt.Errorf("got error in unmarshalling body error:%v", err), w)
 		return
 	}
 
 	items, err := database.SearchDocuments(context.Background(), srchReq.Text)
 	if err != nil {
-		util.LogError(fmt.Errorf("got error in getting documents from db error:", err), "/search req")
-		failure(fmt.Errorf("got error in getting documents from db error:", err), w)
+		util.LogError(fmt.Errorf("got error in getting documents from db error:%v", err), "/search req")
+		failure(fmt.Errorf("got error in getting documents from db error:%v", err), w)
 		return
 	}
 	resp, err := createSearchResp(items)
 	if err != nil {
-		util.LogError(fmt.Errorf("got error in creating search response error:", err), "/search req")
-		failure(fmt.Errorf("got error in creating search response error:", err), w)
+		util.LogError(fmt.Errorf("got error in creating search response error:%v", err), "/search req")
+		failure(fmt.Errorf("got error in creating search response error:%v", err), w)
 		return
 	}
 	fmt.Println("Got a request in /search , no. of results returning : ", len(items))

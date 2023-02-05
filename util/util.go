@@ -3,5 +3,5 @@ package util
 import "log"
 
 func LogError(err error, section string) {
-	log.Print("Got an error ", err, " in ", section)
+	log.Printf("Got an error %s in %s", err.Error(), section)
 }

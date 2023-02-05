@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"encoding/json"
+	"log"
 
 	"fmt"
 	"net/http"
@@ -43,11 +44,7 @@ func getVideos(w http.ResponseWriter, r *http.Request) {
 		failure(err, w)
 		return
 	}
-	if items == nil {
-		util.LogError(fmt.Errorf("got empty result"), "/get-videos req")
-		failure(fmt.Errorf("got empty result"), w)
-		return
-	}
+
 	httpResp := Response{
 		Status: "success",
 		Result: items,
@@ -62,6 +59,6 @@ func getVideos(w http.ResponseWriter, r *http.Request) {
 		failure(err, w)
 		return
 	}
-	fmt.Println("Got a request in /get-videos , no. of results returning : ", len(items))
+	log.Println("Got a request in /get-videos , no. of results returning : ", len(items))
 	w.Write(writeResp)
 }
