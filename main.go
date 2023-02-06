@@ -10,8 +10,7 @@ import (
 
 func main() {
 	ctx := context.Background()
-	ctx, cancel := context.WithCancel(ctx)
-	go cron.CronRun(ctx, time.Minute, time.Now().Add(10*time.Minute).Unix(), "")
-	defer cancel()
+	ctx, _ = context.WithTimeout(ctx, time.Minute*10)
+	go cron.CronRun(ctx, time.Minute, "")
 	server.Run()
 }

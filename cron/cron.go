@@ -3,6 +3,7 @@ package cron
 import (
 	"context"
 	"fmt"
+	"log"
 	"net/http"
 	"time"
 
@@ -21,16 +22,19 @@ const (
 
 // CronRun runs a recursive function till the time is allowed (initially 10 min with delay of 1 min each) , it recursively
 // fetches the next page of the youtube api results
-func CronRun(ctx context.Context, delay time.Duration, till int64, nextPageToken string) error {
-	if time.Now().Unix() >= till {
-		return fmt.Errorf("done")
+func CronRun(ctx context.Context, delay time.Duration, nextPageToken string) {
+	select {
+	case <-ctx.Done():
+		log.Print("ctx is cancelled , closing cron")
+		return
+	default:
 	}
 	nextPageToken = fetchYoutubeVideos(ctx, nextPageToken)
 	if nextPageToken != "" {
 		time.Sleep(delay)
-		return CronRun(ctx, delay, till, nextPageToken)
+		CronRun(ctx, delay, nextPageToken)
+		return
 	}
-	return fmt.Errorf("error in getting next page")
 }
 
 // fetchYoutubeVideos fetches data from youtube data api by appyling the next page token
